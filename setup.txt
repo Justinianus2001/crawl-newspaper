@@ -1,0 +1,6 @@
+flask
+flask-cors
+python_dotenv
+selenium
+tensorflow
+webdriver-manager
