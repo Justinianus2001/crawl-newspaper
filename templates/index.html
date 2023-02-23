@@ -6,13 +6,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Flask and crawl data newspaper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename = 'styles.css') }}">
 </head>
 
 <body>
     <form action="/" method="POST">
-        <input type="text" placeholder="Input here ..." name="search" required>
-        <input type="submit" value="Search">
+        <h5>Tìm kiếm bài báo trên trang <a href="https://vietnamnet.vn">vietnamnet.vn</a></h5>
+        <input type="text" placeholder="Nhập tại đây ..." name="search" class="input"
+            value="{{ cur_search if cur_search != None }}">
+        <input type="submit" value="Tìm kiếm">
+        <br><br>
+        <div class="left">
+            <label for="tag"><u>Chủ đề: </u></label>
+            <select name="tag" class="options">
+                {% for tag in tags %}
+                {% if tag == "ALL" %}
+                <option value="{{ tag }}" {% if cur_tag==tag %} selected {% endif %}>Tất cả</option>
+                {% else %}
+                <option value="{{ tag }}" {% if cur_tag==tag %} selected {% endif %}>{{ tag.title() }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
     </form>
 
     <br>
@@ -22,15 +39,20 @@
         {% for record in records %}
         <tr>
             <td>
-                <b>{{ record[0] }}</b> 
-                (<a href="{{ record[1] }}" target="_blank">Link</a>)
+                <i class="right">{{ record[7] }}</i>
+                <span>Tác giả: {{ record[6] }}</span>
+                <u>
+                    <h5>{{ record[4] }}</h5>
+                </u>
+                <h3><a href="{{ record[2] }}" target="_blank"><b>{{ record[1] }}</b></a></h3>
+                <p>{{ record[5] }}</p>
             </td>
-            <td><img src="{{ record[2] }}" alt="Image"></td>
+            <td><img src="{{ record[3] }}" alt="Image" class="post_image"></td>
         </tr>
         {% endfor %}
     </table>
     {% else %}
-    <div>No search results.</div>
+    <i>No search results.</i>
     {% endif %}
 </body>
 

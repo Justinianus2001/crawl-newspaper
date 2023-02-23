@@ -2,13 +2,14 @@
 # -*- coding: utf_8 -*-
 import os
 import pip
-pip.main(["install", "-r", "setup.txt"])
+# pip.main(["install", "-r", "requirements.txt"])
 
 import sqlite3
 # import tensorflow as tf
 from dotenv import load_dotenv
 from flask import Flask, render_template, request
 from flask_cors import CORS, cross_origin
+from waitress import serve
 
 # Load global variable from .env file
 load_dotenv()
@@ -63,14 +64,33 @@ cur = connect.cursor()
 @cross_origin(origins="*")
 def dashboard():
     if request.method == "POST":
+        tag = request.form.get("tag")
         search = request.form.get("search")
-        cur.execute(f"SELECT * FROM `posts` WHERE `title` LIKE ?", ("%" + search + "%",))
-        result = cur.fetchall()
+
+        # Query get posts
+        if tag == "ALL":
+            result = cur.execute(fr"SELECT * FROM `posts` WHERE `title` LIKE (?) LIMIT 30", ("%" + search + "%",))
+        else:
+            result = cur.execute(fr"SELECT * FROM `posts` WHERE `title` LIKE (?) AND `tag` = (?) LIMIT 30", 
+                    ("%" + search + "%", tag,))
+        result = result.fetchall()
     else:
+        tag = None
+        search = None
         result = []
-    return render_template("./index.html", records = result)
+
+    # Query get list tags
+    tags = cur.execute("SELECT DISTINCT `tag` FROM `posts` ORDER BY `tag` ASC").fetchall()
+    tags = [row[0] for row in tags]
+    tags.insert(0, "ALL")
+
+    return render_template("./index.html", records = result, tags = tags, cur_tag = tag, cur_search = search)
 
 if __name__ == "__main__":
     # Start backend server
-    app.run(host = "0.0.0.0", port = "2306", debug = True)
+    app.jinja_env.auto_reload = True
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.run(host = "0.0.0.0", port=8080)
+    # serve(app, host='0.0.0.0', port=10000)
+    # cmd: waitress-serve --host 0.0.0.0 --port 10000 main:app
     connect.close()

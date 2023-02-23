@@ -5,7 +5,7 @@ This repository used to crawl and search for newspaper info (title, image, link)
 First, create a *.env* file in the root directory and fill some global environment variable:
 
 ```
-DB_FILE=database_name.db
+DB_FILE=database.db
 TIME_SLEEP=3
 WEBSITE=https://vietnamnet.vn/tim-kiem
 ```

@@ -2,13 +2,14 @@
 # -*- coding: utf_8 -*-
 import os
 import pip
-pip.main(["install", "-r", "setup.txt"])
+# pip.main(["install", "-r", "requirements.txt"])
 
 import sqlite3
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.edge.options import Options
+from selenium.webdriver.edge.service import Service
 from selenium.webdriver.support.ui import Select
 from time import sleep
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
@@ -17,24 +18,41 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 load_dotenv()
 
 # Declear browser use
-browser = webdriver.Edge(service = EdgeService(EdgeChromiumDriverManager().install()))
+edge_options = Options()
+edge_options.use_chromium = True
+edge_options.add_argument("headless")
+edge_options.add_argument("disable-gpu")
+# edge_options.add_argument("disable-extensions")
+# edge_options.add_argument("disable-dev-shm-usage")
+# edge_options.add_argument("no-sandbox")
+# edge_options.add_argument("log-level=3")
+# edge_options.add_argument("silent")
+# edge_options.add_argument("disable-logging")
+# edge_options.add_argument("disable-infobars")
+# edge_options.add_argument("window-size=1920,1080")
+
+browser = webdriver.Edge(service = Service(EdgeChromiumDriverManager().install()), options=edge_options)
 browser.maximize_window()
 
 # Connect to database
 connect = sqlite3.connect(os.getenv("DB_FILE"), check_same_thread = False)
 cur = connect.cursor()
 
-# Create table if not exist
-cur.execute("CREATE TABLE IF NOT EXISTS posts (title TEXT, link TEXT UNIQUE, image TEXT)")
-
+# Function to pause script for a while (in second)
 def pause():
     sleep(int(os.getenv("TIME_SLEEP")))
 
 if __name__ == "__main__":
+    # Create table if not exist
+    cur.execute('''CREATE TABLE IF NOT EXISTS posts 
+        (id INTEGER PRIMARY KEY, title TEXT, link TEXT UNIQUE, image TEXT, 
+        tag TEXT, preview TEXT, author TEXT, timestamp TEXT)''')
+    
     # Open site in browser
     browser.get(os.getenv("WEBSITE"))
     pause()
 
+    # Select time range to crawl
     # Value | Type
     # all     All
     # 1       Day
@@ -46,18 +64,48 @@ if __name__ == "__main__":
     pause()
 
     while True:
-        posts = browser.find_elements(By.CLASS_NAME, "feature-box__image")
+        posts = browser.find_elements(By.CLASS_NAME, "feature-box")
         for post in posts:
+            # Get post data
             img_tag = post.find_element(By.CLASS_NAME, "lazy")
-            a_tag = post.find_element(By.TAG_NAME, "a")
+            post_tag = post.find_element(By.TAG_NAME, "a")
+            div_tag = post.find_element(By.CLASS_NAME, "feature-box__content--desc")
+            a_tag = post.find_element(By.CLASS_NAME, "feature-box__content--brand").find_element(By.TAG_NAME, "a")
 
+            title = post_tag.get_attribute("title")
+            link = post_tag.get_attribute("href")
             image = img_tag.get_attribute("data-src")
-            link = a_tag.get_attribute("href")
-            title = a_tag.get_attribute("title")
+            tag = a_tag.text
+            preview = div_tag.text
 
-            cur.execute(f"INSERT OR IGNORE INTO `posts` (title, link, image) VALUES (?, ?, ?)", (title, link, image))
+            # Open post in new tab
+            browser.execute_script(f"window.open('{link}');")
+            browser.switch_to.window(browser.window_handles[-1])
+            pause()
+
+            # Get post timestamp and author
+            try:
+                timestamp = browser.find_element(By.CLASS_NAME, "breadcrumb-box__time").find_element(By.TAG_NAME, "span").text
+            except:
+                try:
+                    timestamp = browser.find_element(By.CLASS_NAME, "bread-crumb__detail-time").find_element(By.TAG_NAME, "p").text
+                except:
+                    timestamp = "Unknown"
+
+            try:
+                author = browser.find_element(By.CLASS_NAME, "newsFeature__author-info").find_element(By.TAG_NAME, "a").text
+            except:
+                author = "Anonymous"
+
+            # Close post tab
+            browser.close()
+            browser.switch_to.window(browser.window_handles[0])
+
+            cur.execute(fr'''INSERT OR IGNORE INTO `posts` (title, link, image, tag, preview, author, timestamp) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)''', (title, link, image, tag, preview, author, timestamp))
             connect.commit()
-        
+
+        # Go to next page if exist
         next_page = browser.find_elements(By.CLASS_NAME, "panination__content-item")[-1]
         if "active" in next_page.get_attribute("class").split():
             break

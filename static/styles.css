@@ -1,12 +1,48 @@
+body {
+    background-color: #E9EBEE;
+    padding: 10px;
+}
+
+a {
+    text-decoration: none;
+}
+
 table,
 tr,
 td {
     border: 1px solid black;
     border-collapse: collapse;
+    border-radius: 15px;
+    border-width: 3px;
+    overflow: hidden;
     padding: 10px;
     width: 100%;
 }
 
 form {
+    font-size: 115%;
     text-align: center;
+}
+
+.home {
+    color: inherit;
+}
+
+.left {
+    display: block;
+    text-align: left;
+}
+
+.right {
+    display: block;
+    text-align: right;
+}
+
+.input,
+.options {
+    width: 20%;
+}
+
+.post_image {
+    width: 245px;
 }
