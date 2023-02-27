@@ -117,7 +117,7 @@ if __name__ == "__main__":
         # Get scroll height
         last_height = browser.execute_script("return document.body.scrollHeight")
 
-        while False:
+        while True:
             # Scroll down to bottom
             browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
@@ -148,10 +148,15 @@ if __name__ == "__main__":
             # Get post info
             link = browser.current_url
             tag = browser.find_element(By.CLASS_NAME, "parent_cate").text
-            author = browser.find_element(By.CLASS_NAME, "the-article-author").text
-            timestamp = browser.find_element(By.CLASS_NAME, "the-article-publish").text
-
-            timestamp = timestamp[timestamp.find(",") + 2:]
+            try:
+                author = browser.find_element(By.CLASS_NAME, "the-article-author").text
+            except:
+                author = "Anonymous"
+            try:
+                timestamp = browser.find_element(By.CLASS_NAME, "the-article-publish").text
+                timestamp = timestamp[timestamp.find(",") + 2:]
+            except:
+                author = "Unknown"
 
             # Close post tab
             browser.close()
