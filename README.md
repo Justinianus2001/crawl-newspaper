@@ -6,8 +6,9 @@ First, create a *.env* file in the root directory and fill some global environme
 
 ```
 DB_FILE=database.db
-TIME_SLEEP=3
-WEBSITE=https://vietnamnet.vn/tim-kiem
+TIME_SLEEP=1
+# WEBSITE=https://vietnamnet.vn/tim-kiem
+WEBSITE=https://zingnews.vn/a-tim-kiem.html?date=30daysago
 ```
 
 Next, run python file *crawl.py*. Take a coffee and do something else when the code crawl the newspaper automatically in your browser.
