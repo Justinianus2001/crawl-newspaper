@@ -1,3 +1,4 @@
+elasticsearch
 faiss-cpu
 flask
 flask-cors

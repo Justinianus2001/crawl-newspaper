@@ -39,15 +39,15 @@
         {% for record in records %}
         <tr>
             <td>
-                <i class="right">{{ record[7] }}</i>
-                <span>Tác giả: {{ record[6] }}</span>
+                <i class="right">{{ record["_source"]["timestamp"] }}</i>
+                <span>Tác giả: {{ record["_source"]["author"] }}</span>
                 <u>
-                    <h5>{{ record[4] }}</h5>
+                    <h5>{{ record["_source"]["tag"] }}</h5>
                 </u>
-                <h3><a href="{{ record[2] }}" target="_blank"><b>{{ record[1] }}</b></a></h3>
-                <p>{{ record[5] }}</p>
+                <h3><a href="{{ record['_source']['link'] }}" target="_blank"><b>{{ record["_source"]["title"] }}</b></a></h3>
+                <p>{{ record["_source"]["preview"] }}</p>
             </td>
-            <td><img src="{{ record[3] }}" alt="Image" class="post_image"></td>
+            <td><img src="{{ record['_source']['image'] }}" alt="Image" class="post_image"></td>
         </tr>
         {% endfor %}
     </table>

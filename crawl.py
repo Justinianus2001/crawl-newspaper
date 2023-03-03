@@ -7,6 +7,7 @@ import pip
 import sqlite3
 from dotenv import load_dotenv
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.edge.service import Service
@@ -20,16 +21,8 @@ load_dotenv()
 # Declear browser use
 edge_options = Options()
 edge_options.use_chromium = True
-# edge_options.add_argument("headless")
-# edge_options.add_argument("disable-gpu")
-# edge_options.add_argument("disable-extensions")
-# edge_options.add_argument("disable-dev-shm-usage")
-# edge_options.add_argument("no-sandbox")
-# edge_options.add_argument("log-level=3")
-# edge_options.add_argument("silent")
-# edge_options.add_argument("disable-logging")
-# edge_options.add_argument("disable-infobars")
-# edge_options.add_argument("window-size=1920,1080")
+edge_options.add_argument("headless")
+edge_options.add_argument("disable-gpu")
 
 browser = webdriver.Edge(service = Service(EdgeChromiumDriverManager().install()), options=edge_options)
 browser.maximize_window()
@@ -37,6 +30,9 @@ browser.maximize_window()
 # Connect to database
 connect = sqlite3.connect(os.getenv("DB_FILE"), check_same_thread = False)
 cur = connect.cursor()
+
+# Declear action chains
+actions = ActionChains(browser)
 
 # Function to pause script for a while (in second)
 def pause():
@@ -113,11 +109,11 @@ if __name__ == "__main__":
             else:
                 next_page.click()
                 pause()
-    elif os.getenv("WEBSITE") == "https://zingnews.vn/a-tim-kiem.html?date=30daysago":
+    elif os.getenv("WEBSITE") == "https://zingnews.vn/a-tim-kiem.html":
         # Get scroll height
         last_height = browser.execute_script("return document.body.scrollHeight")
 
-        while True:
+        for i in range(5):
             # Scroll down to bottom
             browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
@@ -130,13 +126,15 @@ if __name__ == "__main__":
                 break
             last_height = new_height
         
-        posts = browser.find_elements(By.CLASS_NAME, "article-item")
+        posts = browser.find_elements(By.TAG_NAME, "article")
         for post in posts:
-            img_tag = post.find_element(By.CLASS_NAME, "article-thumbnail")
+            img_tag = post.find_element(By.CLASS_NAME, "article-thumbnail").find_element(By.TAG_NAME, "a")
             post_tag = post.find_element(By.TAG_NAME, "header")
+            
+            actions.move_to_element(img_tag).perform()
 
             title = post_tag.find_element(By.CLASS_NAME, "article-title").find_element(By.TAG_NAME, "a").text
-            link = img_tag.find_element(By.TAG_NAME, "a").get_attribute("href")
+            link = img_tag.get_attribute("href")
             image = img_tag.find_element(By.TAG_NAME, "img").get_attribute("src")
             preview = post_tag.find_element(By.CLASS_NAME, "article-summary").text
 
@@ -147,16 +145,22 @@ if __name__ == "__main__":
 
             # Get post info
             link = browser.current_url
-            tag = browser.find_element(By.CLASS_NAME, "parent_cate").text
             try:
-                author = browser.find_element(By.CLASS_NAME, "the-article-author").text
+                tag = browser.find_element(By.CLASS_NAME, "parent_cate").text.upper()
+            except:
+                tag = ""
+
+            try:
+                author = browser.find_element(By.CLASS_NAME, "the-article-author").find_element(By.TAG_NAME, "a").text
             except:
                 author = "Anonymous"
+
             try:
                 timestamp = browser.find_element(By.CLASS_NAME, "the-article-publish").text
-                timestamp = timestamp[timestamp.find(",") + 2:]
+                if "," in timestamp:
+                    timestamp = timestamp[timestamp.find(",") + 2:]
             except:
-                author = "Unknown"
+                timestamp = "Unknown"
 
             # Close post tab
             browser.close()

@@ -4,27 +4,60 @@ import os
 import pip
 # pip.main(["install", "-r", "requirements.txt"])
 
-import sqlite3
-# import tensorflow as tf
+import pandas as pd
+import subprocess
 from dotenv import load_dotenv
+from elasticsearch import Elasticsearch, helpers
 from flask import Flask, render_template, request
 from flask_cors import CORS, cross_origin
-from waitress import serve
+from time import sleep
 
 # Load global variable from .env file
 load_dotenv()
 
-# Load keras model
-# sess = tf.Session()
-# graph = tf.get_default_graph()
+# Init elasticsearch client
+ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+CLOUD_ID = os.getenv("ELASTIC_CLOUD_ID")
 
-# Use this when load or use model
-# with sess.as_default():
-#     with graph.as_default():
-        # Load model here
-        # pass
+# Check env elastic project
+if os.getenv("ELASTIC_ENV") == "cloud":
+    # Start elasticsearch and kibana server in cloud
+    es = Elasticsearch(cloud_id = CLOUD_ID, basic_auth = ("elastic", ELASTIC_PASSWORD))
+elif os.getenv("ELASTIC_ENV") == "local":
+    # Start elasticsearch and kibana server in local
+    es = Elasticsearch([{"host": "localhost", "port": 9200, "scheme": "http"}], verify_certs = True)
+    batch_elasticsearch = subprocess.Popen(r"{}".format(os.getenv("BATCH_ELASTICSEARCH")),
+                                           creationflags=subprocess.CREATE_NEW_CONSOLE)
+    batch_kibana = subprocess.Popen(r"{}".format(os.getenv("BATCH_KIBANA")),
+                                    creationflags=subprocess.CREATE_NEW_CONSOLE)
+else:
+    raise ValueError("ELASTIC_ENV must be either cloud or local")
 
-SECRET_KEY = os.urandom(32)
+# Wait for elasticsearch to be ready
+while not es.ping():
+    print("Elasticsearch server offline.")
+    sleep(1)
+    pass
+
+# Upload data to elasticsearch
+lst = pd.read_csv(os.getenv("CSV_FILE"))
+lst.dropna(axis=0, inplace= True)
+lst = lst.values
+
+if es.indices.exists(index="posts"):
+    es.indices.delete(index="posts")
+
+es.indices.create(index="posts")
+
+helpers.bulk(es, [{
+    "title": lst[i][1],
+    "link": lst[i][2],
+    "image": lst[i][3],
+    "tag": lst[i][4],
+    "preview": lst[i][5],
+    "author": lst[i][6],
+    "timestamp": lst[i][7],
+} for i in range(len(lst))], index="posts")
 
 # Init flask backend server
 app = Flask(__name__)
@@ -32,7 +65,7 @@ CORS(app)
 app.config.update(
     CACHE_TYPE = "null",
     CORS_HEADERS = "Content-Type",
-    SECRET_KEY = SECRET_KEY,
+    SECRET_KEY = os.urandom(32),
     SESSION_COOKIE_SECURE = True,
     SESSION_COOKIE_HTTPONLY = True,
     SESSION_COOKIE_SAMESITE = "Lax",
@@ -40,57 +73,55 @@ app.config.update(
     TEMPLATE_FOLDER = "templates"
 )
 
-# Connect to database
-connect = sqlite3.connect(os.getenv("DB_FILE"), check_same_thread = False)
-cur = connect.cursor()
-
-# GET request example
-# @app.route("/get", methods = ["GET"])
-# @cross_origin(origins="*")
-# def get_get():
-#     a = int(request.args.get("a"))
-#     b = int(request.args.get("b"))
-#     return "Answer is " + str(a + b) + "."
-
-# POST request example
-# @app.route("/post", methods = ["POST"])
-# @cross_origin(origins="*")
-# def post_post():
-#     a = int(request.form.get("c"))
-#     b = int(request.form.get("d"))
-#     return "Answer is " + str(a + b) + "."
-
 @app.route("/", methods = ["GET", "POST"])
 @cross_origin(origins="*")
 def dashboard():
+    result = es.search(index="posts", query={"match_all": {}},
+                       size=os.getenv("QUERY_MAX_ROWS"))
+
+    tags = set()
+    for post in result["hits"]["hits"]:
+        tags.add(post["_source"]["tag"])
+    tags = list(tags)
+    tags.sort()
+    tags.insert(0, "ALL")
+    
+    tag = None
+    search = None
+
     if request.method == "POST":
         tag = request.form.get("tag")
         search = request.form.get("search")
 
         # Query get posts
-        if tag == "ALL":
-            result = cur.execute(fr"SELECT * FROM `posts` WHERE `title` LIKE (?) LIMIT 30", ("%" + search + "%",))
-        else:
-            result = cur.execute(fr"SELECT * FROM `posts` WHERE `title` LIKE (?) AND `tag` = (?) LIMIT 30", 
-                    ("%" + search + "%", tag,))
-        result = result.fetchall()
-    else:
-        tag = None
-        search = None
-        result = []
+        if search:
+            if tag == "ALL":
+                result = es.search(index="posts", query={"match": {"title": search}},
+                                   size=os.getenv("QUERY_MAX_ROWS"))
+            else:
+                result = es.search(index="posts", query={
+                    "bool": {
+                        "must": [
+                            {"match": {"title": search}},
+                            {"match": {"tag": tag}}
+                        ]
+                    }}, size=os.getenv("QUERY_MAX_ROWS"))
+        elif tag != "ALL":
+            result = es.search(index="posts", query={"match": {"tag": tag}},
+                               size=os.getenv("QUERY_MAX_ROWS"))
 
-    # Query get list tags
-    tags = cur.execute("SELECT DISTINCT `tag` FROM `posts` ORDER BY `tag` ASC").fetchall()
-    tags = [row[0] for row in tags]
-    tags.insert(0, "ALL")
-
-    return render_template("./index.html", records = result, tags = tags, cur_tag = tag, cur_search = search)
+    return render_template("./index.html", records = result["hits"]["hits"],
+                           tags = tags, cur_tag = tag, cur_search = search)
 
 if __name__ == "__main__":
     # Start backend server
     app.jinja_env.auto_reload = True
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.run(host = "0.0.0.0", port=8080)
+
     # serve(app, host='0.0.0.0', port=10000)
     # cmd: waitress-serve --host 0.0.0.0 --port 10000 main:app
-    connect.close()
+
+    if os.getenv("ELASTIC_ENV") == "local":
+        batch_elasticsearch.kill()
+        batch_kibana.kill()
