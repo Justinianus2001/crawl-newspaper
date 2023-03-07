@@ -9,8 +9,8 @@ First, create a *.env* file in the root directory and fill some global environme
 ```
 BATCH_ELASTICSEARCH=your-local-elasticsearch-batch-file
 BATCH_KIBANA=your-local-kibana-batch-file
-DB_FILE=database.db
-CSV_FILE=database.csv
+DB_FILE=./data/database.db
+CSV_FILE=./data/database.csv
 ELASTIC_CLOUD_ID=your-elastic-cloud-id
 ELASTIC_ENV=cloud
 ELASTIC_PASSWORD=your-elastic-cloud-password
@@ -26,5 +26,11 @@ After configuration process, run file *app.py* in root directory and search for 
 ```
 python app.py
 ```
+
+In root directory, there are some python files:
+
+- *app.py*: Python Flask page application (main)
+- *crawl.py*: Tool selenium crawl newspaper
+- *db_to_csv*: Tool convert .db sqlite into .csv file
 
 Have a nice day !!!
