@@ -15,15 +15,16 @@ ELASTIC_CLOUD_ID=your-elastic-cloud-id
 ELASTIC_ENV=cloud
 ELASTIC_PASSWORD=your-elastic-cloud-password
 QUERY_MAX_ROWS=2000
+QUERY_PAGINATION=30
 TIME_SLEEP=2
 # WEBSITE=https://vietnamnet.vn/tim-kiem
 WEBSITE=https://zingnews.vn/a-tim-kiem.html
 ```
 
-After configuration process, run file *main.py* in root directory and search for the keywork you want to find.
+After configuration process, run file *app.py* in root directory and search for the keywork you want to find.
 
 ```
-python main.py
+python app.py
 ```
 
 Have a nice day !!!

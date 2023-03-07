@@ -1,12 +1,12 @@
 elasticsearch
-faiss-cpu
+# faiss-cpu
 flask
 flask-cors
+# numpy
 pandas
 python_dotenv
 selenium
-sentence-transformers
-tensorflow
-transformers
-waitress
+# sentence-transformers
+# tensorflow
+# transformers
 webdriver-manager

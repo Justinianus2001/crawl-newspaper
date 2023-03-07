@@ -13,13 +13,13 @@
 
 <body>
     <form action="/" method="POST">
-        <h5>Tìm kiếm bài báo trên trang <a href="https://vietnamnet.vn">vietnamnet.vn</a></h5>
+        <h5>Tìm kiếm bài báo trên trang <a href="https://vietnamnet.vn">vietnamnet.vn</a> và <a href="https://zingnews.vn">zingnews.vn</a></h5>
         <input type="text" placeholder="Nhập tại đây ..." name="search" class="input"
             value="{{ cur_search if cur_search != None }}">
         <input type="submit" value="Tìm kiếm">
         <br><br>
         <div class="left">
-            <label for="tag"><u>Chủ đề: </u></label>
+            <label for="tag"><u>Chủ đề</u>: </label>
             <select name="tag" class="options">
                 {% for tag in tags %}
                 {% if tag == "ALL" %}
