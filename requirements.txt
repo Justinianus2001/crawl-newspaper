@@ -1,12 +1,16 @@
 elasticsearch
-# faiss-cpu
 flask
 flask-cors
-# numpy
+numpy #
+nltk #
 pandas
 python_dotenv
+pyvi
+scikit-learn #
+scipy #
 selenium
-# sentence-transformers
-# tensorflow
-# transformers
-webdriver-manager
+torch #
+tqdm #
+transformers #
+sentence-transformers
+webdriver-manager     

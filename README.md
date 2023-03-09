@@ -9,17 +9,21 @@ First, create a *.env* file in the root directory and fill some global environme
 ```
 BATCH_ELASTICSEARCH=your-local-elasticsearch-batch-file
 BATCH_KIBANA=your-local-kibana-batch-file
+BATCH_SIZE=128
 DB_FILE=./data/database.db
 CSV_FILE=./data/database.csv
 ELASTIC_CLOUD_ID=your-elastic-cloud-id
 ELASTIC_ENV=cloud
 ELASTIC_PASSWORD=your-elastic-cloud-password
+ENV=cloud
 QUERY_MAX_ROWS=2000
 QUERY_PAGINATION=30
 TIME_SLEEP=2
 # WEBSITE=https://vietnamnet.vn/tim-kiem
 WEBSITE=https://zingnews.vn/a-tim-kiem.html
 ```
+
+**Note:** For ENV variable in *.env*. In the first time run, I recommend set this ***ENV=local*** to push database of this project into elasticsearch storage. So when next times, we don't need to push it again and can set ***ENV=cloud*** to improve time processing. (Importance if you need to deploy this app into cloud like Azure, ...)
 
 After configuration process, run file *app.py* in root directory and search for the keywork you want to find.
 
@@ -33,4 +37,4 @@ In root directory, there are some python files:
 - *crawl.py*: Tool selenium crawl newspaper
 - *db_to_csv*: Tool convert .db sqlite into .csv file
 
-Have a nice day !!!
+> Star repository if you like it. Have a nice day !!!

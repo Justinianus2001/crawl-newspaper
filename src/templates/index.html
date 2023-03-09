@@ -45,7 +45,7 @@
                 <u>
                     <h5>{{ record["_source"]["tag"] }}</h5>
                 </u>
-                <h3><a href="{{ record['_source']['link'] }}" target="_blank"><b>{{ record["_source"]["title"] }}</b></a> (Score: {{ record["_score"] }})</h3>
+                <h3><a href="{{ record['_source']['link'] }}" target="_blank"><b>{{ record["_source"]["title"] }}</b></a> (Score: {{ record["_score"] - 1 }})</h3>
                 <p>{{ record["_source"]["preview"] }}</p>
             </td>
             <td><img src="{{ record['_source']['image'] }}" alt="Image" class="post_image"></td>
