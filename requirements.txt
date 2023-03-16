@@ -1,16 +1,9 @@
 elasticsearch
 flask
 flask-cors
-numpy #
-nltk #
 pandas
 python_dotenv
 pyvi
-scikit-learn #
-scipy #
 selenium
-torch #
-tqdm #
-transformers #
 sentence-transformers
 webdriver-manager     

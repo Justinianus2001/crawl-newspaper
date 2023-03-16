@@ -1,4 +1,5 @@
 {
     "appService.defaultWebAppToDeploy": "/subscriptions/14acc6de-c753-4858-b917-47dbd1c305ea/resourceGroups/appsvc_linux_centralus_basic/providers/Microsoft.Web/sites/crawl-newspaper",
-    "appService.deploySubpath": "."
+    "appService.deploySubpath": ".",
+    "python.analysis.typeCheckingMode": "off"
 }

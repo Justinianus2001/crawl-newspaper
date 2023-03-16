@@ -7,16 +7,8 @@ a {
     text-decoration: none;
 }
 
-table,
-tr,
-td {
-    border: 1px solid black;
-    border-collapse: collapse;
-    border-radius: 15px;
-    border-width: 3px;
-    overflow: hidden;
-    padding: 10px;
-    width: 100%;
+a:hover {
+    text-decoration: underline;
 }
 
 form {
@@ -26,6 +18,10 @@ form {
 
 .home {
     color: inherit;
+}
+
+.icon {
+    width: 30px;
 }
 
 .left {
@@ -38,11 +34,94 @@ form {
     text-align: right;
 }
 
-.input,
-.options {
-    width: 20%;
+.input {
+    width: 60% !important;
 }
 
 .post_image {
-    width: 245px;
+    width: 250px;
+}
+
+table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+    width: 100%;
+}
+
+th {
+    font-weight: initial;
+    padding: 20px;
+}
+
+.bordered {
+    -moz-border-radius: 6px;
+    -moz-box-shadow: 0 2px 2px #ccc;
+    -webkit-border-radius: 6px;
+    -webkit-box-shadow: 0 2px 2px #ccc;
+    border: solid #ccc 2px;
+    border-radius: 10px;
+    box-shadow: 0 2px 2px #ccc;
+}
+
+.bordered tr:hover {
+    -moz-transition: all 0.1s ease-in-out;
+    -webkit-transition: all 0.1s ease-in-out;
+    background: #ECECEC;
+    transition: all 0.1s ease-in-out;
+}
+
+.bordered td,
+.bordered th {
+    border-left: 2px solid #ccc;
+    border-top: 2px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.bordered th {
+    -moz-box-shadow: 0 2px 0 rgba(255, 255, 255, .8) inset;
+    -webkit-box-shadow: 0 2px 0 rgba(255, 255, 255, .8) inset;
+    background-color: #ECECEC;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#F8F8F8), to(#ECECEC));
+    background-image: -webkit-linear-gradient(top, #F8F8F8, #ECECEC);
+    background-image: -moz-linear-gradient(top, #F8F8F8, #ECECEC);
+    background-image: linear-gradient(top, #F8F8F8, #ECECEC);
+    border-top: none;
+    box-shadow: 0 2px 0 rgba(255, 255, 255, .8) inset;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, .5);
+}
+
+.bordered td:first-child,
+.bordered th:first-child {
+    border-left: none;
+}
+
+.bordered th:first-child {
+    -moz-border-radius: 6px 0 0 0;
+    -webkit-border-radius: 6px 0 0 0;
+    border-radius: 6px 0 0 0;
+}
+
+.bordered th:last-child {
+    -moz-border-radius: 0 6px 0 0;
+    -webkit-border-radius: 0 6px 0 0;
+    border-radius: 0 6px 0 0;
+}
+
+.bordered th:only-child {
+    -moz-border-radius: 6px 6px 0 0;
+    -webkit-border-radius: 6px 6px 0 0;
+    border-radius: 6px 6px 0 0;
+}
+
+.bordered tr:last-child td:first-child {
+    -moz-border-radius: 0 0 0 6px;
+    -webkit-border-radius: 0 0 0 6px;
+    border-radius: 0 0 0 6px;
+}
+
+.bordered tr:last-child td:last-child {
+    -moz-border-radius: 0 0 6px 0;
+    -webkit-border-radius: 0 0 6px 0;
+    border-radius: 0 0 6px 0;
 }

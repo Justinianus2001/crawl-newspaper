@@ -8,13 +8,14 @@ from sentence_transformers import SentenceTransformer
 
 class ElasticSearchEngine:
     def __init__(self):
+        # Using SimeCSE_Vietnamese with sentences-transformers
         self.model_embedding = SentenceTransformer("VoVanPhuc/sup-SimCSE-VietNamese-phobert-base")
 
         # Check env elastic (cloud or local)
         if os.getenv("ELASTIC_ENV") == "cloud":
             # Start elasticsearch in cloud
             self.es = Elasticsearch(cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
-                            basic_auth=("elastic", os.getenv("ELASTIC_PASSWORD")))
+                                    basic_auth=("elastic", os.getenv("ELASTIC_PASSWORD")))
         elif os.getenv("ELASTIC_ENV") == "local":
             # Start elasticsearch in local
             self.es = Elasticsearch([{"host": "localhost", "port": 9200, "scheme": "http"}], verify_certs=True)
@@ -30,20 +31,14 @@ class ElasticSearchEngine:
             print("Elasticsearch server offline.")
 
     def run(self):
-        self.es.indices.delete(index="posts", ignore=[404])
-
-        self.es.indices.create(index="posts", mappings={
+        # Recreate index
+        self.es.indices.delete(index=os.getenv("ELASTIC_INDEX"), ignore=[404])
+        self.es.indices.create(index=os.getenv("ELASTIC_INDEX"), mappings={
             "dynamic": "true",
             "_source": {
                 "enabled": "true"
             },
             "properties": {
-                "id": {
-                    "type": "text"
-                },
-                "title": {
-                    "type": "text"
-                },
                 "title_vector": {
                     "type": "dense_vector",
                     "dims": 768
@@ -54,7 +49,7 @@ class ElasticSearchEngine:
         self.indexed_data()
 
         # Refresh index to make changes available for search
-        self.es.indices.refresh(index="posts")
+        self.es.indices.refresh(index=os.getenv("ELASTIC_INDEX"))
 
     def indexed_data(self):
         # Upload data to elasticsearch
@@ -62,6 +57,7 @@ class ElasticSearchEngine:
         lst.dropna(axis=0, inplace=True)
         lst = lst.values
 
+        # Batch indexing
         for i in range(0, len(lst), int(os.getenv("BATCH_SIZE"))):
             docs = lst[i:i+int(os.getenv("BATCH_SIZE"))]
 
@@ -78,7 +74,7 @@ class ElasticSearchEngine:
                 "author": docs[i][6],
                 "timestamp": docs[i][7],
                 "title_vector": titles_vector[i]
-            } for i in range(len(docs))], index="posts")
+            } for i in range(len(docs))], index=os.getenv("ELASTIC_INDEX"))
 
     def embed_text_title(self, batch_text):
         batch_embedding = self.model_embedding.encode(batch_text)

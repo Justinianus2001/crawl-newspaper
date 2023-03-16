@@ -30,31 +30,35 @@ def setup():
 setup()
 
 # Start flask server
-app = Flask(__name__, template_folder="./src/templates", static_folder="./src/static")
+app = Flask(__name__, template_folder="./src/templates",
+            static_folder="./src/static")
 CORS(app)
 app.config.update(
-    CACHE_TYPE = "null",
-    CORS_HEADERS = "Content-Type",
-    SECRET_KEY = os.urandom(32),
-    SESSION_COOKIE_SECURE = True,
-    SESSION_COOKIE_HTTPONLY = True,
-    SESSION_COOKIE_SAMESITE = "Lax",
-    TEMPLATE_AUTO_RELOAD = True
+    CACHE_TYPE="null",
+    CORS_HEADERS="Content-Type",
+    SECRET_KEY=os.urandom(32),
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    TEMPLATE_AUTO_RELOAD=True
 )
 
 # Start elasticsearch server
 elastic = ElasticSearchEngine()
 
+# If running in local, prepare data and upload to elasticsearch
 if os.getenv("ENV") == "local":
     elastic.run()
 
-@app.route("/", methods = ["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 @cross_origin(origins="*")
 def dashboard():
-    result = elastic.es.search(index="posts", query={
-        "match_all": {}
-    }, size=os.getenv("QUERY_MAX_ROWS"))
+    # Get all posts
+    result = elastic.es.search(index=os.getenv("ELASTIC_INDEX"),
+                               query={"match_all": {}},
+                               size=os.getenv("QUERY_MAX_ROWS"))
 
+    # Get all tags
     tags = list({post["_source"]["tag"] for post in result["hits"]["hits"]})
     tags.sort(key=locale.strxfrm)
     tags.insert(0, "ALL")
@@ -67,35 +71,47 @@ def dashboard():
         search = request.form.get("search")
 
         if search:
-            result = elastic.es.search(index="posts", query={
-                "match": {
-                    "title": search
-                }
-            }, size=os.getenv("QUERY_MAX_ROWS"))
-
+            # Search for posts that match the search query and sort by similarity score
             query_vector = embed_text_query([tokenize(search)])[0]
-            result = elastic.es.search(index="posts", query={
-                "script_score": {
+            result = elastic.es.search(index=os.getenv("ELASTIC_INDEX"), query={
+                "function_score": {
                     "query": {
-                        "match_all": {}
+                        "bool": {
+                            "should": [
+                                {
+                                    # Add 1.0 to exact match titles
+                                    "constant_score": {
+                                        "filter": {"match_phrase": {"title": search}},
+                                        "boost": 1
+                                    }
+                                },
+                                {
+                                    "script_score": {
+                                        "query": {"match_all": {}},
+                                        "script": {
+                                            # Add 1.0 to avoid negative score
+                                            "source": "cosineSimilarity(params.query_vector, 'title_vector') + 1.0",
+                                            "params": {"query_vector": query_vector}
+                                        },
+                                        "min_score": float(os.getenv("SEARCH_THRESHOLD")) + 1.0
+                                    }
+                                }
+                            ]
+                        }
                     },
-                    "script": {
-                        "source": "cosineSimilarity(params.query_vector, 'title_vector') + 1.0",
-                        "params": {"query_vector": query_vector}
-                    }
+                    "boost_mode": "sum"
                 }
-            }, size=os.getenv("QUERY_MAX_ROWS"))
+            }, size=os.getenv("QUERY_MAX_ROWS"), min_score=float(os.getenv("SEARCH_THRESHOLD")) + 1.0)
 
         if tag != "ALL":
             # Delete all posts that don't match the tag from the result list
             # in reverse order to avoid index out of range error
-            for i in range(len(result["hits"]["hits"]) - 1, -1, -1):
+            for i in reversed(range(len(result["hits"]["hits"]))):
                 if result["hits"]["hits"][i]["_source"]["tag"] != tag:
                     del result["hits"]["hits"][i]
 
-    return render_template("./index.html",
-                            records=result["hits"]["hits"][:int(os.getenv("QUERY_PAGINATION"))],
-                            tags=tags, cur_tag=tag, cur_search=search)
+    return render_template("./index.html", tags=tags, cur_tag=tag, cur_search=search, size=len(result["hits"]["hits"]),
+                           records=result["hits"]["hits"][:int(os.getenv("QUERY_PAGINATION"))])
 
 def embed_text_query(text):
     text_embedding = elastic.model_embedding.encode(text)
@@ -104,7 +120,7 @@ def embed_text_query(text):
 if __name__ == "__main__":
     # Start backend server
     app.jinja_env.auto_reload = True
-    app.run(host = "0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=8080)
 
     del app
     del elastic
