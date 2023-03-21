@@ -52,7 +52,7 @@ if os.getenv("ENV") == "local":
 
 @app.route("/", methods=["GET", "POST"])
 @cross_origin(origins="*")
-def dashboard():
+def search():
     # Get all posts
     result = elastic.es.search(index=os.getenv("ELASTIC_INDEX"),
                                query={"match_all": {}},

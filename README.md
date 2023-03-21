@@ -41,8 +41,6 @@ In root directory, there are some python files:
 
 Website demo:
 - Render: https://crawl-newspaper.onrender.com (Commit version #5)
-- Azure:
-  - https://crawl-newspaper.azurewebsites.net (Latest commit)
-  - https://crawl-newspaper-staging.azurewebsites.net (Staging test web)
+- Azure: https://crawl-newspaper.azurewebsites.net (Latest commit)
 
 > Star repository if you like it. Have a nice day !!!

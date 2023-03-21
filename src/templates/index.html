@@ -9,34 +9,42 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename = 'favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
+        integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename = 'styles.css') }}">
 </head>
 
 <body>
-    <form action="/" method="POST">
-        <h3>
-            Search Vietnamese online newspaper
-            <a href="https://github.com/Justinianus2001/crawl_newspaper" target="_blank">
-                <img src="{{ url_for('static', filename = 'github.ico') }}" alt="github.ico" class="icon">
-            </a>
-        </h3>
+    <div class="header">
+        <form action="/" method="POST">
+            <h3>
+                Search Vietnamese online newspaper
+                <a href="https://github.com/Justinianus2001/crawl_newspaper" target="_blank">
+                    <img src="{{ url_for('static', filename = 'github.ico') }}" alt="github.ico" class="icon">
+                </a>
+            </h3>
 
-        <div class="input-group mb-3">
-            <select name="tag" class="form-select" aria-label="Tag select">
-                {% for tag in tags %}
-                {% if tag == "ALL" %}
-                <option value="{{ tag }}" {% if cur_tag==tag %} selected {% endif %}>Tất cả</option>
-                {% else %}
-                <option value="{{ tag }}" {% if cur_tag==tag %} selected {% endif %}>{{ tag.title() }}</option>
-                {% endif %}
-                {% endfor %}
-            </select>
-            <input type="text" name="search" class="form-control input" aria-label="Input title"
-                placeholder="Bạn muốn tìm kiếm gì?" value="{{ cur_search if cur_search != None }}">
-            <button class="btn btn-primary" type="submit">Tìm kiếm</button>
-        </div>
-    </form>
-    <hr>
+            <div class="input-group mb-3">
+                <select name="tag" class="form-select" aria-label="Tag select">
+                    {% for tag in tags %}
+                    {% if tag == "ALL" %}
+                    <option value="{{ tag }}" {% if cur_tag==tag %} selected {% endif %}>Tất cả</option>
+                    {% else %}
+                    <option value="{{ tag }}" {% if cur_tag==tag %} selected {% endif %}>{{ tag.title() }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+                <input type="text" name="search" id="search" class="form-control input" aria-label="Input title"
+                    placeholder="Bạn muốn tìm kiếm gì?" value="{{ cur_search if cur_search != None }}">
+                <button id="voice-search" class="btn btn-secondary" type="button" onclick="voiceSearch()">
+                    <i class="fa fa-microphone"></i>
+                </button>
+                <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
+            </div>
+        </form>
+        <hr>
+    </div>
     {% if records | length != 0 %}
     <i>Đã tìm thấy {{ size }} kết quả.</i>
     <br><br>
@@ -73,6 +81,41 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
         integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
         crossorigin="anonymous"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type=text/javascript>
+        function voiceSearch() {
+            const button = document.getElementById("voice-search");
+            const input = document.getElementById("search");
+            const recognition = new webkitSpeechRecognition();
+
+            // Set the language for recognition
+            recognition.lang = "vi-VN";
+
+            // Start recognition when the button is clicked
+            recognition.start();
+            button.disabled = true;
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-danger');
+
+            // Listen for results
+            recognition.onresult = function(event) {
+                const lastResult = event.results.length - 1;
+                const result = event.results[lastResult][0].transcript;
+                input.value = result;
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-secondary');
+                button.disabled = false;
+            };
+
+            // Listen for errors
+            recognition.onerror = function(event) {
+                console.error("Speech recognition error: ", event.error);
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-secondary');
+                button.disabled = false;
+            };
+        }
+    </script>
 </body>
 
 </html>

@@ -6,4 +6,4 @@ python_dotenv
 pyvi
 selenium
 sentence-transformers
-webdriver-manager     
+webdriver-manager

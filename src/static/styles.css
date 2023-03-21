@@ -16,6 +16,12 @@ form {
     text-align: center;
 }
 
+.header {
+    background-color: #E9EBEE;
+    position: sticky;
+    top: 0;
+}
+
 .home {
     color: inherit;
 }
