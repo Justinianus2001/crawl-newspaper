@@ -120,7 +120,7 @@ def embed_text_query(text):
 if __name__ == "__main__":
     # Start backend server
     app.jinja_env.auto_reload = True
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT")))
 
     del app
     del elastic

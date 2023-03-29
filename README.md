@@ -1,3 +1,6 @@
+[![pipeline status](https://gitlab.com/Justinianus2001/crawl-newspaper/badges/master/pipeline.svg)](https://gitlab.com/Justinianus2001/crawl-newspaper/-/commits/master)
+[![coverage report](https://gitlab.com/Justinianus2001/crawl-newspaper/badges/master/coverage.svg)](https://gitlab.com/Justinianus2001/crawl-newspaper/-/commits/master)
+[![Latest Release](https://gitlab.com/Justinianus2001/crawl-newspaper/-/badges/release.svg)](https://gitlab.com/Justinianus2001/crawl-newspaper/-/releases)
 # Getting Started
 
 This repository used to crawl and search for newspaper info (title, link, image, tag, preview, author, timestamp) from website https://vietnamnet.vn, https://zingnews.vn use flask, selenium and elasticsearch library in python 3.
@@ -17,6 +20,7 @@ ELASTIC_ENV=cloud
 ELASTIC_INDEX=posts
 ELASTIC_PASSWORD=your-elastic-cloud-password
 ENV=cloud
+PORT=5000
 QUERY_MAX_ROWS=2000
 QUERY_PAGINATION=30
 SEARCH_THRESHOLD=0.4
