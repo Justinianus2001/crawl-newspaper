@@ -18,7 +18,7 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 # Load global variable from .env file
 load_dotenv()
 
-# Declear browser use
+# Declare browser use
 edge_options = Options()
 edge_options.use_chromium = True
 edge_options.add_argument("headless")
